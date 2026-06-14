@@ -1,10 +1,8 @@
-// src/modules/auth/auth.routes.js
 const { Router } = require('express');
 const { registrar, login } = require('./auth.controller');
 
 const router = Router();
 
-// Ruta de prueba para verificar que el módulo responde
 // URL: http://localhost:3000/api/v1/auth/test
 router.get('/test', (req, res) => {
   res.json({
