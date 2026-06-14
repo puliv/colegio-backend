@@ -6,6 +6,8 @@ const sequelize = require('./config/db');
 const authRoutes = require('./modules/auth/auth.routes');
 const studentRoutes = require('./modules/estudiantes/estudiantes.routes');
 const asistenciaRoutes = require('./modules/asistencia/asistencia.routes');
+const calificacionesRoutes = require('./modules/calificaciones/calificaciones.routes');
+
 
 const app = express();
 
@@ -17,6 +19,8 @@ app.use(express.json());
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/estudiantes', studentRoutes);
 app.use('/api/v1/asistencia', asistenciaRoutes);
+app.use('/api/v1/calificaciones', calificacionesRoutes);
+
 
 app.get('/', (req, res) => {
   res.json({
@@ -33,7 +37,7 @@ async function startServer() {
     console.log('✅ Conexión a MySQL establecida correctamente.');
 
     // Sincronizar modelos (creará tablas automáticamente si no existen)
-    await sequelize.sync({ force: false });
+    await sequelize.sync({ force: true });
     console.log('📦 Modelos sincronizados con la Base de Datos.');
 
     app.listen(PORT, () => {
