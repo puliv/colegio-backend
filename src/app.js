@@ -43,7 +43,7 @@ async function startServer() {
     // 🚀 IMPORTAMOS LOS MODELOS PARA ASOCIARLOS
     const Usuario = require('./modules/auth/auth.model');
     const Curso = require('./modules/cursos/curso.model');
-    const Estudiante = require('./modules/estudiantes/estudiantes.model'); 
+    const Estudiante = require('./modules/estudiantes/estudiantes.model');
 
     // 🤝 ASOCIACIONES
     // 1. Un Profesor (Usuario) tiene muchos Cursos
@@ -53,7 +53,6 @@ async function startServer() {
     // 2. Un Curso tiene muchos Estudiantes
     Curso.hasMany(Estudiante, { foreignKey: 'cursoId', as: 'alumnos' });
     Estudiante.belongsTo(Curso, { foreignKey: 'cursoId' });
-
 
     // Sincronizar modelos de forma segura sin borrar todo
     await sequelize.sync({ alter: true });

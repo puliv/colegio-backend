@@ -1,5 +1,5 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../../config/database.js'; // Ajusta la ruta a tu conexión si es necesario
+const { DataTypes } = require('sequelize');
+const sequelize = require('../../config/db'); // 👈 Apunta exactamente a tu archivo de conexión 'db'
 
 const Curso = sequelize.define('Curso', {
   id: {
@@ -10,13 +10,13 @@ const Curso = sequelize.define('Curso', {
   nombre: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true // Evita que se repita exactamente el mismo curso
+    unique: true
   },
   profesorId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Usuarios', // Asegúrate de que coincida con el nombre de tu tabla de profes en la DB
+      model: 'usuarios', // Asegúrate de que coincida con el nombre de tu tabla de profes en minúsculas/plural
       key: 'id'
     }
   }
@@ -25,4 +25,4 @@ const Curso = sequelize.define('Curso', {
   timestamps: true
 });
 
-export default Curso;
+module.exports = Curso;

@@ -1,13 +1,11 @@
-import { Router } from 'express';
-import { obtenerCursosPorProfesor, crearCurso } from './curso.controller.js';
-import { validarJWT } from '../../middleware/validar-jwt.js'; // Ajusta la ruta a tu middleware real de JWT
+const { Router } = require('express');
+const { obtenerCursosPorProfesor, crearCurso } = require('./curso.controller');
+//const validarJWT = require('../../middleware/auth.middleware'); 
 
 const router = Router();
 
-// Todas las sub-rutas de este módulo requerirán un token válido
-router.use(validarJWT);
-
+//router.use(validarJWT);
 router.get('/', obtenerCursosPorProfesor);
 router.post('/', crearCurso);
 
-export default router;
+module.exports = router;
