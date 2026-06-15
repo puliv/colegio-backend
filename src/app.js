@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: __dirname + '/.env' });
 
 const express = require('express');
+const cors = require('cors');
 const sequelize = require('./config/db');
 const authRoutes = require('./modules/auth/auth.routes');
 const studentRoutes = require('./modules/estudiantes/estudiantes.routes');
@@ -15,6 +16,7 @@ app.disable('x-powered-by');
 
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/estudiantes', studentRoutes);

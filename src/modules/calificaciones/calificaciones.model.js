@@ -1,4 +1,3 @@
-// src/modules/calificaciones/calificaciones.model.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/db');
 const Alumno = require('../estudiantes/estudiantes.model');
