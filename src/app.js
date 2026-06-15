@@ -8,6 +8,7 @@ const authRoutes = require('./modules/auth/auth.routes');
 const studentRoutes = require('./modules/estudiantes/estudiantes.routes');
 const asistenciaRoutes = require('./modules/asistencia/asistencia.routes');
 const calificacionesRoutes = require('./modules/calificaciones/calificaciones.routes');
+const cursoRoutes = require('./modules/cursos/curso.routes');
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/estudiantes', studentRoutes);
 app.use('/api/v1/asistencia', asistenciaRoutes);
 app.use('/api/v1/calificaciones', calificacionesRoutes);
+app.use('/api/v1/cursos', cursoRoutes);
 
 
 app.get('/', (req, res) => {
@@ -38,9 +40,24 @@ async function startServer() {
     await sequelize.authenticate();
     console.log('✅ Conexión a MySQL establecida correctamente.');
 
-    // Sincronizar modelos (creará tablas automáticamente si no existen)
-    await sequelize.sync({ force: true });
-    console.log('📦 Modelos sincronizados con la Base de Datos.');
+    // 🚀 IMPORTAMOS LOS MODELOS PARA ASOCIARLOS
+    const Usuario = require('./modules/auth/auth.model');
+    const Curso = require('./modules/cursos/curso.model');
+    const Estudiante = require('./modules/estudiantes/estudiantes.model'); 
+
+    // 🤝 ASOCIACIONES
+    // 1. Un Profesor (Usuario) tiene muchos Cursos
+    Usuario.hasMany(Curso, { foreignKey: 'profesorId', as: 'cursos' });
+    Curso.belongsTo(Usuario, { foreignKey: 'profesorId' });
+
+    // 2. Un Curso tiene muchos Estudiantes
+    Curso.hasMany(Estudiante, { foreignKey: 'cursoId', as: 'alumnos' });
+    Estudiante.belongsTo(Curso, { foreignKey: 'cursoId' });
+
+
+    // Sincronizar modelos de forma segura sin borrar todo
+    await sequelize.sync({ alter: true });
+    console.log('📦 Modelos y relaciones sincronizados con la Base de Datos.');
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo con éxito en http://localhost:${PORT}`);

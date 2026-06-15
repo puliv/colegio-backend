@@ -20,7 +20,7 @@ const Alumno = sequelize.define('Alumno', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  curso: {
+  cursoId: {
     type: DataTypes.STRING,
     allowNull: false // Ej: "4to Medio A", "1ro Básico"
   }
