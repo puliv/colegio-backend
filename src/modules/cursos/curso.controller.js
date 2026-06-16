@@ -13,13 +13,33 @@ const obtenerCursosPorProfesor = async (req, res) => {
 
 const crearCurso = async (req, res) => {
   try {
-    const { nombre } = req.body;
-    const profesorId = req.usuario.id;
-    const nuevoCurso = await Curso.create({ nombre, profesorId });
-    res.status(201).json({ ok: true, msg: 'Curso creado', curso: nuevoCurso });
+    // 💡 Modificación: Si viene en req.usuario (por token) lo usa, de lo contrario lo saca del req.body
+    const { nombre, profesorId } = req.body;
+    const idDelProfesor = req.usuario?.id || profesorId;
+
+    if (!idDelProfesor) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'Falta el id del profesor (profesorId)'
+      });
+    }
+
+    const nuevoCurso = await Curso.create({
+      nombre,
+      profesorId: idDelProfesor
+    });
+
+    res.status(201).json({
+      ok: true,
+      msg: 'Curso creado de manera exitosa',
+      curso: nuevoCurso
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ ok: false, msg: 'Error al crear curso' });
+    console.error("Error en crearCurso:", error);
+    res.status(500).json({
+      ok: false,
+      msg: 'Error al crear curso'
+    });
   }
 };
 
