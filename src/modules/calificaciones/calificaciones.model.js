@@ -22,15 +22,12 @@ const Calificacion = sequelize.define('Calificacion', {
   },
   descripcion: {
     type: DataTypes.STRING,
-    allowNull: false // Ej: "Control de Lectura: Papelucho"
+    allowNull: false 
   }
 }, {
   tableName: 'calificaciones',
   timestamps: true
 });
 
-// Relaciones
-Calificacion.belongsTo(Alumno, { foreignKey: 'alumnoId', as: 'alumno' });
-Alumno.hasMany(Calificacion, { foreignKey: 'alumnoId', as: 'calificaciones' });
 
 module.exports = Calificacion;

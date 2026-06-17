@@ -22,8 +22,5 @@ const Asistencia = sequelize.define('Asistencia', {
   timestamps: true
 });
 
-// Relación: Una asistencia pertenece a un Alumno (crea la columna AlumnoId automáticamente)
-Asistencia.belongsTo(Alumno, { foreignKey: 'alumnoId', as: 'alumno' });
-Alumno.hasMany(Asistencia, { foreignKey: 'alumnoId', as: 'asistencias' });
 
 module.exports = Asistencia;
