@@ -6,7 +6,7 @@ const protegerRuta = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     // El formato estándar es "Bearer <TOKEN>"
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ ok: false, msg: 'No hay token, autorización denegada' });
     }
 

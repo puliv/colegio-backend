@@ -5,9 +5,7 @@ const Calificacion = require("../calificaciones/calificaciones.model");
 const obtenerAlumnos = async (req, res) => {
   try {
     const { cursoId } = req.query;
-
     const where = cursoId ? { cursoId: Number(cursoId) } : {};
-
     const alumnos = await Alumno.findAll({
       where,
       include: [
@@ -16,7 +14,7 @@ const obtenerAlumnos = async (req, res) => {
           as: "calificaciones",
           attributes: ["id", "nota", "fecha", "descripcion"],
         },
-      ],
+      ],  
       order: [["apellido", "ASC"]],
     });
 

@@ -43,7 +43,7 @@ async function startServer() {
     require("./config/associations");
     console.log("🔗 Asociaciones entre modelos cargadas.");
 
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: false });
     console.log("📦 Modelos y relaciones sincronizados con la Base de Datos.");
 
     app.listen(PORT, () => {

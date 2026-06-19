@@ -11,8 +11,9 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: 'mysql',
-    logging: false, // Evita que la consola se llene de logs innecesarios de SQL
+    logging: false, 
   }
 );
 
 module.exports = sequelize;
+

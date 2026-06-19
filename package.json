@@ -4,7 +4,9 @@
   "description": "",
   "main": "src/app.js",
   "scripts": {
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -16,6 +18,15 @@
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
+    "@jest/globals": "^30.4.1",
+    "jest": "^30.4.2",
     "nodemon": "^3.1.14"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/modules/**/*.controller.js"
+    ]
   }
 }

@@ -1,71 +1,109 @@
-const Asistencia = require('./asistencia.model');
-const Alumno = require('../estudiantes/estudiantes.model');
+const Asistencia = require("./asistencia.model");
+const Alumno = require("../estudiantes/estudiantes.model");
 
-// 1. REGISTRAR O ACTUALIZAR LA ASISTENCIA DE UN ALUMNO
+// 1. REGISTRAR ASISTENCIA MASIVA DE UN CURSO
 const registrarAsistencia = async (req, res) => {
   try {
-    const { alumnoId, fecha, estado, observacion } = req.body; 
+    const { cursoId, fecha, registros } = req.body;
 
-    // Verificar que el alumno realmente exista antes de pasarle lista
-    const alumno = await Alumno.findByPk(alumnoId);
-    if (!alumno) {
-      return res.status(404).json({ ok: false, msg: 'El alumno no existe' });
+    if (
+      !cursoId ||
+      !fecha ||
+      !Array.isArray(registros) ||
+      registros.length === 0
+    ) {
+      return res
+        .status(400)
+        .json({
+          ok: false,
+          msg: "Faltan campos obligatorios: cursoId, fecha, registros",
+        });
     }
 
-    // Upsert inteligente: Si ya le pasaron lista hoy, lo actualiza. Si no, lo crea.
-    const [registro, creado] = await Asistencia.findOrCreate({
-      where: { alumnoId, fecha },
-      defaults: { estado, observacion }
-    });
+    // Procesar cada registro del arreglo que envía el frontend
+    const resultados = await Promise.all(
+      registros.map(async (item) => {
+        // Convertir presente (boolean) → estado (ENUM)
+        let estado;
+        if (item.presente) {
+          estado = "PRESENTE";
+        } else if (item.justificacion?.trim()) {
+          estado = "JUSTIFICADO";
+        } else {
+          estado = "AUSENTE";
+        }
 
-    if (!creado) {
-      // Si ya existía un registro para este alumno en esta fecha, actualizamos el estado
-      registro.estado = estado;
-      registro.observacion = observacion;
-      await registro.save();
-    }
+        const justificacion =
+          estado === "JUSTIFICADO" ? item.justificacion.trim() : null;
+
+        // Upsert: crea o actualiza el registro de ese alumno en esa fecha
+        const [registro, creado] = await Asistencia.findOrCreate({
+          where: { alumnoId: item.estudianteId, fecha },
+          defaults: { estado, justificacion },
+        });
+
+        if (!creado) {
+          registro.estado = estado;
+          registro.justificacion = justificacion;
+          await registro.save();
+        }
+
+        return registro;
+      })
+    );
 
     res.status(200).json({
       ok: true,
-      msg: creado ? 'Asistencia registrada con éxito' : 'Asistencia actualizada con éxito',
-      asistencia: registro
+      msg: `Asistencia registrada para ${resultados.length} alumnos.`,
+      registros: resultados,
     });
   } catch (error) {
-    console.error('❌ Error al registrar asistencia:', error.message);
-    res.status(500).json({ ok: false, msg: 'Error en el servidor al registrar asistencia' });
+    console.error("❌ Error al registrar asistencia:", error.message);
+    res
+      .status(500)
+      .json({ ok: false, msg: "Error en el servidor al registrar asistencia" });
   }
 };
 
 // 2. OBTENER ASISTENCIA DE UN CURSO EN UNA FECHA ESPECÍFICA
 const obtenerAsistenciaPorCurso = async (req, res) => {
   try {
-    const { curso, fecha } = req.query; // Los leeremos desde la URL (?curso=4to Medio A&fecha=2026-06-14)
+    const { cursoId, fecha } = req.query;
 
-    if (!curso || !fecha) {
-      return res.status(400).json({ ok: false, msg: 'Faltan parámetros requeridos: curso y fecha' });
+    if (!cursoId || !fecha) {
+      return res
+        .status(400)
+        .json({
+          ok: false,
+          msg: "Faltan parámetros requeridos: cursoId y fecha",
+        });
     }
 
-    // Buscamos las asistencias de esa fecha filtrando por el curso del alumno
     const lista = await Asistencia.findAll({
       where: { fecha },
-      include: [{
-        model: Alumno,
-        as: 'alumno',
-        where: { curso }, // Filtra solo los alumnos de este curso específico
-        attributes: ['rut', 'nombre', 'apellido', 'curso'] // Datos limpios para el frontend
-      }]
+      include: [
+        {
+          model: Alumno,
+          as: "alumno",
+          where: { cursoId: Number(cursoId) },
+          attributes: ["id", "rut", "nombre", "apellido"],
+        },
+      ],
+      order: [[{ model: Alumno, as: "alumno" }, "apellido", "ASC"]],
     });
 
     res.json({
       ok: true,
       fecha,
-      curso,
+      cursoId: Number(cursoId),
       totalAlumnos: lista.length,
-      reporte: lista
+      reporte: lista,
     });
   } catch (error) {
-    console.error('❌ Error al obtener reporte de asistencia:', error.message);
-    res.status(500).json({ ok: false, msg: 'Error en el servidor al obtener el reporte' });
+    console.error("❌ Error al obtener reporte de asistencia:", error.message);
+    res
+      .status(500)
+      .json({ ok: false, msg: "Error en el servidor al obtener el reporte" });
   }
 };
 
