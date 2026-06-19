@@ -1,0 +1,302 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Colegio Bernardo O'Higgins — API Requests
+# Extensión requerida: REST Client (humao.rest-client)
+# ─────────────────────────────────────────────────────────────────────────────
+# USO:
+#   1. Ejecuta primero "Login" y copia el token de la respuesta
+#   2. Pégalo en @token = <pega aquí>
+#   3. Haz click en "Send Request" sobre cualquier petición
+# ─────────────────────────────────────────────────────────────────────────────
+
+@base = http://localhost:3000/api/v1
+@token = <pega_tu_token_aqui>
+
+# =============================================================================
+# AUTH
+# =============================================================================
+
+### [AUTH] Health check
+GET {{base}}/auth/test
+
+###
+
+### [AUTH] Registrar profesor
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "email": "juan.perez@colegio.cl",
+  "password": "Segura123!"
+}
+
+###
+
+### [AUTH] Login — copia el token de la respuesta y pégalo arriba en @token
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@colegio.cl",
+  "password": "Segura123!"
+}
+
+###
+
+### [AUTH] Login — credenciales incorrectas (espera 400)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "noexiste@colegio.cl",
+  "password": "wrongpass"
+}
+
+# =============================================================================
+# CURSOS
+# =============================================================================
+
+### [CURSOS] Obtener cursos del profesor autenticado
+GET {{base}}/cursos
+Authorization: Bearer {{token}}
+
+###
+
+### [CURSOS] Crear curso (profesorId tomado del token)
+POST {{base}}/cursos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "1°A"
+}
+
+###
+
+### [CURSOS] Crear curso con profesorId explícito en body
+POST {{base}}/cursos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "2°B",
+  "profesorId": 1
+}
+
+###
+
+### [CURSOS] Sin token — espera 401
+GET {{base}}/cursos
+
+# =============================================================================
+# ESTUDIANTES
+# =============================================================================
+
+### [ESTUDIANTES] Obtener todos los alumnos
+GET {{base}}/estudiantes
+Authorization: Bearer {{token}}
+
+###
+
+### [ESTUDIANTES] Obtener alumnos de un curso específico
+GET {{base}}/estudiantes?cursoId=1
+Authorization: Bearer {{token}}
+
+###
+
+### [ESTUDIANTES] Crear alumno
+POST {{base}}/estudiantes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "rut": "12345678-9",
+  "nombre": "Ana",
+  "apellido": "López",
+  "cursoId": 1
+}
+
+###
+
+### [ESTUDIANTES] Crear alumno — faltan campos (espera 400)
+POST {{base}}/estudiantes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Pedro"
+}
+
+# =============================================================================
+# ASISTENCIA
+# =============================================================================
+
+### [ASISTENCIA] Registrar — todos presentes
+POST {{base}}/asistencia
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cursoId": 1,
+  "fecha": "2025-06-01",
+  "registros": [
+    { "estudianteId": 1, "presente": true },
+    { "estudianteId": 2, "presente": true },
+    { "estudianteId": 3, "presente": true }
+  ]
+}
+
+###
+
+### [ASISTENCIA] Registrar — con ausente y justificado
+POST {{base}}/asistencia
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cursoId": 1,
+  "fecha": "2025-06-02",
+  "registros": [
+    { "estudianteId": 1, "presente": true },
+    { "estudianteId": 2, "presente": false },
+    { "estudianteId": 3, "presente": false, "justificacion": "Cita médica" }
+  ]
+}
+
+###
+
+### [ASISTENCIA] Registrar — faltan campos (espera 400)
+POST {{base}}/asistencia
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cursoId": 1
+}
+
+###
+
+### [ASISTENCIA] Obtener reporte de un curso en una fecha
+GET {{base}}/asistencia/reporte?cursoId=1&fecha=2025-06-01
+Authorization: Bearer {{token}}
+
+###
+
+### [ASISTENCIA] Reporte — falta fecha (espera 400)
+GET {{base}}/asistencia/reporte?cursoId=1
+Authorization: Bearer {{token}}
+
+# =============================================================================
+# CALIFICACIONES
+# =============================================================================
+
+### [CALIFICACIONES] Ingresar notas masivas
+POST {{base}}/calificaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombreEvaluacion": "Prueba Unidad 1",
+  "calificaciones": [
+    { "estudianteId": 1, "nota": 6.5 },
+    { "estudianteId": 2, "nota": 4.0 },
+    { "estudianteId": 3, "nota": 5.5 }
+  ]
+}
+
+###
+
+### [CALIFICACIONES] Nota fuera de rango (espera 400)
+POST {{base}}/calificaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombreEvaluacion": "Prueba Unidad 2",
+  "calificaciones": [
+    { "estudianteId": 1, "nota": 8.0 }
+  ]
+}
+
+###
+
+### [CALIFICACIONES] Sin nombre de evaluación (espera 400)
+POST {{base}}/calificaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombreEvaluacion": "   ",
+  "calificaciones": [
+    { "estudianteId": 1, "nota": 6.0 }
+  ]
+}
+
+###
+
+### [CALIFICACIONES] Obtener notas de un alumno
+GET {{base}}/calificaciones/alumno/1
+Authorization: Bearer {{token}}
+
+###
+
+### [CALIFICACIONES] Alumno inexistente (espera 404)
+GET {{base}}/calificaciones/alumno/9999
+Authorization: Bearer {{token}}
+
+# =============================================================================
+# ANOTACIONES
+# =============================================================================
+
+### [ANOTACIONES] Registrar anotación positiva
+POST {{base}}/anotaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "alumnoId": 1,
+  "tipo": "POSITIVA",
+  "descripcion": "Excelente participación en clases.",
+  "fecha": "2025-06-01"
+}
+
+###
+
+### [ANOTACIONES] Registrar anotación negativa
+POST {{base}}/anotaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "alumnoId": 2,
+  "tipo": "NEGATIVA",
+  "descripcion": "No trajo los materiales solicitados.",
+  "fecha": "2025-06-01"
+}
+
+###
+
+### [ANOTACIONES] Registrar anotación neutra
+POST {{base}}/anotaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "alumnoId": 3,
+  "tipo": "NEUTRA",
+  "descripcion": "Se retiró antes del término de la jornada.",
+  "fecha": "2025-06-01"
+}
+
+###
+
+### [ANOTACIONES] Faltan campos (espera 400)
+POST {{base}}/anotaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "alumnoId": 1,
+  "tipo": "POSITIVA"
+}
