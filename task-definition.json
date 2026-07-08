@@ -1,0 +1,85 @@
+{
+  "family": "colegio-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "2048",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::979626573809:role/LabRole",
+  "taskRoleArn": "arn:aws:iam::979626573809:role/LabRole",
+  "containerDefinitions": [
+    {
+      "name": "mysql",
+      "image": "979626573809.dkr.ecr.us-east-1.amazonaws.com/colegio-mysql:latest",
+      "memory": 1024,
+      "healthCheck": {
+	  "command": ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -pWp.3uuX- || exit 1"],
+	  "interval": 10,
+	  "timeout": 5,
+	  "retries": 5,
+	  "startPeriod": 40
+	},
+      "essential": true,
+      "portMappings": [{ "containerPort": 3306 }],
+      "environment": [
+        { "name": "MYSQL_ROOT_PASSWORD", "value": "Wp.3uuX-" },
+        { "name": "MYSQL_DATABASE", "value": "libro_clases_db" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/colegio-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "mysql",
+          "awslogs-create-group": "true"
+        }
+      }
+    },
+    {
+      "name": "backend",
+      "image": "979626573809.dkr.ecr.us-east-1.amazonaws.com/colegio-backend:latest",
+      "memory": 512,
+      "essential": true,
+      "portMappings": [{ "containerPort": 3000 }],
+      "dependsOn": [
+        { "containerName": "mysql", "condition": "HEALTHY" }
+      ],
+      "environment": [
+        { "name": "DB_HOST", "value": "127.0.0.1" },
+        { "name": "DB_NAME", "value": "libro_clases_db" },
+        { "name": "DB_USER", "value": "root" },
+        { "name": "DB_PASSWORD", "value": "Wp.3uuX-" },
+        { "name": "JWT_SECRET", "value": "Wp.3uuX-" },
+        { "name": "JWT_EXPIRES_IN", "value": "4h" },
+        { "name": "PORT", "value": "3000" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/colegio-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "backend",
+          "awslogs-create-group": "true"
+        }
+      }
+    },
+    {
+      "name": "frontend",
+      "image": "979626573809.dkr.ecr.us-east-1.amazonaws.com/colegio-frontend:latest",
+      "memory": 256, 
+      "essential": true,
+      "portMappings": [{ "containerPort": 80 }],
+      "dependsOn": [
+        { "containerName": "backend", "condition": "START" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/colegio-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "frontend",
+          "awslogs-create-group": "true"
+        }
+      }
+    }
+  ]
+}
