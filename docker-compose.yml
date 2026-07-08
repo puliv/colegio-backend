@@ -1,0 +1,44 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "3307:3306"    # host:contenedor -> ahora usas 3307 desde tu máquina
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+    ports:
+      - "3000:3000"   # ajusta al puerto real de tu backend
+
+  frontend:
+    build: ../colegio-frontend   # ajusta la ruta relativa a donde tengas el repo del frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data:
